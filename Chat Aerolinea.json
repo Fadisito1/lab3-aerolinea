@@ -1,0 +1,150 @@
+{
+  "name": "Chat Aerolinea",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "e545b44e-0e9f-441e-8a27-8a24f1cf294d",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9970ce1e-fd61-4bb9-b94c-c1e51d5d6221",
+      "name": "Webhook",
+      "webhookId": "e545b44e-0e9f-441e-8a27-8a24f1cf294d"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.message }}\n\nContexto actual del dashboard (JSON):\n{{ JSON.stringify($json.body.contexto) }}",
+        "options": {
+          "systemMessage": "Eres un agente de IA de soporte para el Gerente de Revenue & Operaciones de Rutas de una aerolínea virtual. Le ayudas a interpretar métricas como Factor de Ocupación, RASK, reservas por estado, cancelaciones y puntualidad (OTP), y a decidir sobre reasignación de flota, frecuencias, precios dinámicos y tiempos de escala. Usa el contexto JSON recibido para responder con datos concretos. Responde de forma concisa y en español."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "b8c5a78a-fb95-4834-a3de-daaae404017d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        96,
+        208
+      ],
+      "id": "6f6711d7-88bd-4170-9d01-d63ea619455c",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "92k7AXwCboTLxukz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=     {{ $json.body.sessionId || 'sesion-demo' }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        240,
+        208
+      ],
+      "id": "374a33d9-c261-47ba-9081-b5789248dce5",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"response\": {{ JSON.stringify($json.output) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        592,
+        0
+      ],
+      "id": "5a795b39-ce6d-4e11-84fd-1aabe19c29e1",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "9945cab4-60d2-4533-9d62-db879359e513",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "94105212310633bff5cf199a7d06c9cf200a866d745874e3aff1f1999540ba1d"
+  },
+  "nodeGroups": [],
+  "id": "Mgu7H0HQRCsBCaTG",
+  "tags": []
+}
